@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Primitives
+    function isValidId(id) { 
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    
+    // User Profile
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['email', 'createdAt', 'updatedAt']) 
+             && data.email is string && data.email.size() <= 200
+             && data.createdAt == request.time
+             && data.updatedAt == request.time
+             && (data.get('partnerContact', '') == '' || data.partnerContact is string && data.partnerContact.size() <= 50)
+             && (data.get('coachColors', '') == '' || data.coachColors is string && data.coachColors.size() <= 50)
+             && (data.get('coachVoice', '') == '' || data.coachVoice in ['male', 'female', 'neutral']);
+    }
+
+    function isValidUserProfileUpdate(data) {
+      return data.email is string && data.email.size() <= 200
+             && data.updatedAt == request.time
+             && (data.get('partnerContact', '') == '' || data.partnerContact is string && data.partnerContact.size() <= 50)
+             && (data.get('coachColors', '') == '' || data.coachColors is string && data.coachColors.size() <= 50)
+             && (data.get('coachVoice', '') == '' || data.coachVoice in ['male', 'female', 'neutral']);
+    }
+
+    // Journal Entry
+    function isValidJournalEntry(data) {
+      return data.keys().hasAll(['title', 'content', 'date', 'type', 'createdAt', 'updatedAt'])
+             && data.title is string && data.title.size() <= 200
+             && data.content is string && data.content.size() <= 10000
+             && data.date is string && data.date.size() <= 50
+             && data.type is string && data.type in ['daily', 'milestone']
+             && data.createdAt == request.time
+             && data.updatedAt == request.time;
+    }
+
+    function isValidJournalEntryUpdate(data) {
+      return data.title is string && data.title.size() <= 200
+             && data.content is string && data.content.size() <= 10000
+             && data.date is string && data.date.size() <= 50
+             && data.type is string && data.type in ['daily', 'milestone']
+             && data.updatedAt == request.time;
+    }
+
+    // Mood Log
+    function isValidMoodLog(data) {
+      return data.keys().hasAll(['mood', 'createdAt'])
+             && data.mood is string && data.mood in ['cheerful', 'grateful', 'whimsical', 'romantic', 'hopeful', 'reflective', 'calm', 'melancholy', 'boredom', 'irritated', 'gloomy', 'anxious', 'lonely', 'resentful', 'mysterious', 'ominous', 'idyllic']
+             && data.createdAt == request.time
+             && (data.get('location', '') == '' || data.location is string && data.location.size() <= 200);
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId 
+                    && isValidUserProfile(incoming()) 
+                    && request.auth.token.email == incoming().email;
+      allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId 
+                    && isValidUserProfileUpdate(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['partnerContact', 'coachColors', 'coachVoice', 'updatedAt'])
+                    && incoming().email == existing().email
+                    && incoming().createdAt == existing().createdAt;
+      allow delete: if false;
+
+      match /journals/{journalId} {
+        allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidId(journalId);
+        allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+        allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId 
+                      && isValidId(journalId)
+                      && isValidJournalEntry(incoming())
+                      && exists(/databases/$(database)/documents/users/$(userId));
+        allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId 
+                      && isValidId(journalId)
+                      && isValidJournalEntryUpdate(incoming())
+                      && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'date', 'type', 'updatedAt'])
+                      && incoming().createdAt == existing().createdAt;
+        allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidId(journalId);
+      }
+
+      match /moods/{moodId} {
+        allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidId(moodId);
+        allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+        allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId 
+                      && isValidId(moodId)
+                      && isValidMoodLog(incoming())
+                      && exists(/databases/$(database)/documents/users/$(userId));
+        allow update: if false; // Moods are append-only logs
+        allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidId(moodId);
+      }
+    }
+  }
+}

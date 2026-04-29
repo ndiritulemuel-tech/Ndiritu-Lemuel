@@ -1,0 +1,57 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "User Profile",
+      "description": "User profile with their settings.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "partnerContact": { "type": "string" },
+        "coachColors": { "type": "string" },
+        "coachVoice": { "type": "string", "enum": ["male", "female", "neutral"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["email", "createdAt", "updatedAt"]
+    },
+    "journalEntry": {
+      "title": "Journal Entry",
+      "description": "User's journal or milestone entry.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" },
+        "type": { "type": "string", "enum": ["daily", "milestone"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "content", "date", "type", "createdAt", "updatedAt"]
+    },
+    "moodLog": {
+      "title": "Mood Log",
+      "description": "Log of user's mood and location.",
+      "type": "object",
+      "properties": {
+        "mood": { "type": "string", "enum": ["cheerful", "grateful", "whimsical", "romantic", "hopeful", "reflective", "calm", "melancholy", "boredom", "irritated", "gloomy", "anxious", "lonely", "resentful", "mysterious", "ominous", "idyllic"] },
+        "location": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["mood", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/userProfile" },
+      "description": "User profile document. Tied to Firebase Auth UID."
+    },
+    "/users/{userId}/journals/{journalId}": {
+      "schema": { "$ref": "#/entities/journalEntry" },
+      "description": "User's journals and milestones."
+    },
+    "/users/{userId}/moods/{moodId}": {
+      "schema": { "$ref": "#/entities/moodLog" },
+      "description": "User's mood tracking entries."
+    }
+  }
+}

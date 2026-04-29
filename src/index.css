@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+}
+
+@layer base {
+  :root {
+    --bg-primary: #FFF0F5;
+    --text-primary: #1F0D33;
+    --text-secondary: #7443A3;
+    --accent: #FF2E93;
+    --accent-light: #FFC2E2;
+    --surface: #FFFFFF;
+    --distress: #FF3B30;
+  }
+  
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+  }
+  
+  .soft-shadow {
+    box-shadow: 0 10px 30px -10px rgba(255, 46, 147, 0.25);
+  }
+  .card-shadow {
+    box-shadow: 0px 8px 30px rgba(116, 67, 163, 0.08);
+  }
+
+  /* Simple markdown prose classes */
+  .prose {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .prose p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+  .prose strong {
+    font-weight: 600;
+  }
+  .prose ul {
+    list-style-type: disc;
+    padding-left: 1.25em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+}
