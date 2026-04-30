@@ -8,13 +8,15 @@
 
 @layer base {
   :root {
-    --bg-primary: #FFF0F5;
-    --text-primary: #1F0D33;
-    --text-secondary: #7443A3;
-    --accent: #FF2E93;
-    --accent-light: #FFC2E2;
+    --bg-primary: #F9FDFB; /* Soft cream/white */
+    --bg-secondary: #EAF0EC; /* Sage green light */
+    --text-primary: #2D3A32; /* Deep sage text */
+    --text-secondary: #5F7466; /* Muted soft green */
+    --accent: #5D8A66; /* Sage green */
+    --accent-light: #DCE5E0; /* Soft sage background */
     --surface: #FFFFFF;
-    --distress: #FF3B30;
+    --distress: #D67A7A; /* Softer, matte red for emergency */
+    --blue-soft: #E6F0FA; /* Soft blue for variance */
   }
   
   body {
@@ -34,10 +36,10 @@
   }
   
   .soft-shadow {
-    box-shadow: 0 10px 30px -10px rgba(255, 46, 147, 0.25);
+    box-shadow: 0 10px 30px -10px rgba(93, 138, 102, 0.25);
   }
   .card-shadow {
-    box-shadow: 0px 8px 30px rgba(116, 67, 163, 0.08);
+    box-shadow: 0px 8px 30px rgba(45, 58, 50, 0.08);
   }
 
   /* Simple markdown prose classes */

@@ -17,7 +17,7 @@ export function BottomNav({ currentTab, setTab }: BottomNavProps) {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 glass-nav pb-safe bg-white/80">
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-auto md:w-[480px] md:translate-x-[-50%] md:left-[50%] glass-nav bg-white/90 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-[2rem] border border-white/40">
       <div className="flex items-center justify-around px-2 py-3">
         {tabs.map((tab) => {
           const isActive = currentTab === tab.id;
@@ -45,7 +45,7 @@ export function BottomNav({ currentTab, setTab }: BottomNavProps) {
               {isActive && (
                 <motion.div
                   layoutId="bottom-nav-indicator"
-                  className="absolute inset-0 bg-[color:var(--accent-light)] opacity-40 rounded-2xl -z-0"
+                  className="absolute inset-0 bg-[color:var(--accent)]/10 rounded-[1.25rem] -z-0"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                 />
               )}

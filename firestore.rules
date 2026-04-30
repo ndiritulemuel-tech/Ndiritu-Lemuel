@@ -20,6 +20,9 @@ service cloud.firestore {
              && data.email is string && data.email.size() <= 200
              && data.createdAt == request.time
              && data.updatedAt == request.time
+             && (data.get('pseudonym', '') == '' || data.pseudonym is string && data.pseudonym.size() <= 50)
+             && (data.get('supportFocus', '') == '' || data.supportFocus is string && data.supportFocus.size() <= 50)
+             && (data.get('identityPref', '') == '' || data.identityPref is string && data.identityPref.size() <= 50)
              && (data.get('partnerContact', '') == '' || data.partnerContact is string && data.partnerContact.size() <= 50)
              && (data.get('coachColors', '') == '' || data.coachColors is string && data.coachColors.size() <= 50)
              && (data.get('coachVoice', '') == '' || data.coachVoice in ['male', 'female', 'neutral']);
@@ -28,6 +31,9 @@ service cloud.firestore {
     function isValidUserProfileUpdate(data) {
       return data.email is string && data.email.size() <= 200
              && data.updatedAt == request.time
+             && (data.get('pseudonym', '') == '' || data.pseudonym is string && data.pseudonym.size() <= 50)
+             && (data.get('supportFocus', '') == '' || data.supportFocus is string && data.supportFocus.size() <= 50)
+             && (data.get('identityPref', '') == '' || data.identityPref is string && data.identityPref.size() <= 50)
              && (data.get('partnerContact', '') == '' || data.partnerContact is string && data.partnerContact.size() <= 50)
              && (data.get('coachColors', '') == '' || data.coachColors is string && data.coachColors.size() <= 50)
              && (data.get('coachVoice', '') == '' || data.coachVoice in ['male', 'female', 'neutral']);
@@ -55,7 +61,7 @@ service cloud.firestore {
     // Mood Log
     function isValidMoodLog(data) {
       return data.keys().hasAll(['mood', 'createdAt'])
-             && data.mood is string && data.mood in ['cheerful', 'grateful', 'whimsical', 'romantic', 'hopeful', 'reflective', 'calm', 'melancholy', 'boredom', 'irritated', 'gloomy', 'anxious', 'lonely', 'resentful', 'mysterious', 'ominous', 'idyllic']
+             && data.mood is string && data.mood in ['calm', 'content', 'energized', 'healing', 'exhausted', 'overwhelmed', 'anxious', 'sad', 'numb', 'irritable', 'triggered', 'cheerful', 'grateful', 'whimsical', 'romantic', 'hopeful', 'reflective', 'melancholy', 'boredom', 'irritated', 'gloomy', 'lonely', 'resentful', 'mysterious', 'ominous', 'idyllic']
              && data.createdAt == request.time
              && (data.get('location', '') == '' || data.location is string && data.location.size() <= 200);
     }
@@ -67,7 +73,7 @@ service cloud.firestore {
                     && request.auth.token.email == incoming().email;
       allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId 
                     && isValidUserProfileUpdate(incoming())
-                    && incoming().diff(existing()).affectedKeys().hasOnly(['partnerContact', 'coachColors', 'coachVoice', 'updatedAt'])
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['pseudonym', 'supportFocus', 'identityPref', 'partnerContact', 'coachColors', 'coachVoice', 'updatedAt'])
                     && incoming().email == existing().email
                     && incoming().createdAt == existing().createdAt;
       allow delete: if false;

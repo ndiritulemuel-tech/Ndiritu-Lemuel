@@ -33,15 +33,15 @@ export default function App() {
     <div className="min-h-screen bg-[color:var(--bg-primary)] font-sans relative overflow-x-hidden">
       
       {/* Top Floating SOS Button */}
-      <div className="fixed top-6 right-4 sm:right-8 z-50">
+      <div className="absolute top-6 right-4 sm:right-8 z-40">
         <motion.button 
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsSOSOpen(true)}
-          className="bg-[color:var(--distress)] text-white p-3 rounded-full shadow-[0_8px_30px_rgba(255,59,48,0.4)] flex items-center justify-center gap-2"
+          className="bg-[color:var(--distress)]/10 text-[color:var(--distress)] backdrop-blur-md p-3 px-4 rounded-full border border-white/50 shadow-sm flex items-center justify-center gap-2"
         >
-          <ShieldAlert size={20} />
-          <span className="font-bold text-sm tracking-wide hidden sm:block">SOS</span>
+          <ShieldAlert size={18} strokeWidth={2.5} />
+          <span className="font-bold text-xs tracking-wider">SOS</span>
         </motion.button>
       </div>
 

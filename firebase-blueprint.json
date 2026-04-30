@@ -6,6 +6,9 @@
       "type": "object",
       "properties": {
         "email": { "type": "string" },
+        "pseudonym": { "type": "string" },
+        "supportFocus": { "type": "string" },
+        "identityPref": { "type": "string" },
         "partnerContact": { "type": "string" },
         "coachColors": { "type": "string" },
         "coachVoice": { "type": "string", "enum": ["male", "female", "neutral"] },

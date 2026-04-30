@@ -5,6 +5,9 @@ import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/fires
 
 export interface UserProfile {
   email: string;
+  pseudonym?: string;
+  supportFocus?: string;
+  identityPref?: string;
   partnerContact: string;
   coachColors: string;
   coachVoice: string;

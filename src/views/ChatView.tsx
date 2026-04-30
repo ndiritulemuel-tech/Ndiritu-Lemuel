@@ -17,9 +17,9 @@ interface Message {
 
 export function ChatView() {
   const { user, profile } = useAuth();
-  const [mode, setMode] = useState<'partner' | 'coach'>('coach');
+  const [mode, setMode] = useState<'haven' | 'direct' | 'groups'>('haven');
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', text: `Hi ${user?.displayName?.split(' ')[0] || 'there'}. I'm Aura, your relationship coach. How can I support you today?`, sender: 'bot', type: 'text' }
+    { id: '1', text: `Hi ${user?.displayName?.split(' ')[0] || 'there'}. I'm Haven, your gentle mental health companion. How can I support you today?`, sender: 'bot', type: 'text' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -58,8 +58,8 @@ export function ChatView() {
     setIsLoading(true);
 
     try {
-      const historyText = messages.map(m => `**${m.sender === 'user' ? 'User' : 'Aura'}**: ${m.text}`).join('\n');
-      const prompt = `You are Aura, an empathetic, helpful, and concise AI relationship coach. The user's name is ${user?.displayName || 'User'}. Their voice preference for you is ${profile?.coachVoice || 'neutral'}. Be brief, direct, and highly supportive. Do not use generic platitudes. Use markdown for organization if needed.\n\nHere is the conversation history:\n${historyText}\n\n**User**: ${userText}\n**Aura**:`;
+      const historyText = messages.map(m => `**${m.sender === 'user' ? 'User' : 'Haven'}**: ${m.text}`).join('\n');
+      const prompt = `You are Haven, an empathetic, helpful, and concise AI mental health companion. The user's name is ${user?.displayName || 'User'}. Their voice preference for you is ${profile?.coachVoice || 'neutral'}. Be calming, safe, and highly supportive without being overly enthusiastic or demanding. Use markdown for organization if needed.\n\nHere is the conversation history:\n${historyText}\n\n**User**: ${userText}\n**Haven**:`;
       
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -78,39 +78,51 @@ export function ChatView() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 md:max-w-xl md:mx-auto relative">
+    <div className="flex flex-col h-screen bg-[color:var(--bg-primary)] md:max-w-xl md:mx-auto relative">
+      {/* Decorative gradient blur */}
+      <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-br from-[color:var(--bg-secondary)]/50 to-transparent blur-3xl -z-10" />
+
       {/* Header */}
-      <div className="pt-6 pb-4 px-6 bg-white border-b border-gray-100 rounded-b-3xl z-10 card-shadow sticky top-0">
-        <h1 className="text-2xl font-serif font-semibold text-[color:var(--text-primary)] mb-4">
+      <div className="pt-8 pb-4 px-6 md:px-8 bg-transparent z-10 sticky top-0">
+        <h1 className="text-3xl font-serif font-semibold text-[color:var(--text-primary)] mb-6 tracking-tight">
           Connect
         </h1>
         
         {/* Mode Switcher */}
-        <div className="flex p-1 bg-gray-100 rounded-full inset-0">
+        <div className="flex p-1 bg-white/60 backdrop-blur-md rounded-[1.25rem] inset-0 shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-white/50 mb-2">
           <button
-            onClick={() => setMode('partner')}
+            onClick={() => setMode('haven')}
             className={cn(
-              "flex-1 py-2 text-sm font-semibold rounded-full transition-all",
-              mode === 'partner' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+              "flex-1 py-2.5 text-sm font-semibold rounded-[1rem] transition-all",
+              mode === 'haven' ? "bg-[color:var(--text-primary)] text-white shadow-sm" : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"
             )}
           >
-             Partner
+            Haven
           </button>
           <button
-            onClick={() => setMode('coach')}
+            onClick={() => setMode('direct')}
             className={cn(
-              "flex-1 py-2 text-sm font-semibold rounded-full transition-all",
-              mode === 'coach' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+              "flex-1 py-2.5 text-sm font-semibold rounded-[1rem] transition-all",
+              mode === 'direct' ? "bg-white text-[color:var(--text-primary)] shadow-sm" : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"
             )}
           >
-            Aura (Coach)
+             Chats
+          </button>
+          <button
+            onClick={() => setMode('groups')}
+            className={cn(
+              "flex-1 py-2.5 text-sm font-semibold rounded-[1rem] transition-all",
+              mode === 'groups' ? "bg-white text-[color:var(--text-primary)] shadow-sm" : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"
+            )}
+          >
+             Groups
           </button>
         </div>
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 pb-32">
-        {mode === 'coach' ? (
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-6 pb-40 hide-scrollbar scroll-smooth">
+        {mode === 'haven' ? (
           <>
             {messages.map((msg) => (
               <motion.div 
@@ -126,10 +138,10 @@ export function ChatView() {
                   {msg.sender === 'user' ? <User size={16} /> : <Bot size={16} />}
                 </div>
                 <div className={cn(
-                  "p-4 rounded-3xl max-w-[85%]",
+                  "p-4 rounded-[1.5rem] max-w-[85%] shadow-sm",
                   msg.sender === 'user' 
                     ? "bg-[color:var(--text-primary)] text-white rounded-tr-sm" 
-                    : "bg-white text-gray-800 card-shadow rounded-tl-sm text-sm leading-relaxed overflow-hidden"
+                    : "bg-white text-[color:var(--text-primary)] rounded-tl-sm text-sm leading-relaxed overflow-hidden border border-[color:var(--bg-secondary)]"
                 )}>
                   {msg.sender === 'bot' ? (
                     <div className="markdown-body prose prose-sm prose-p:my-1">
@@ -142,68 +154,103 @@ export function ChatView() {
               </motion.div>
             ))}
             {isLoading && (
-              <div className="flex gap-3 flex-row">
+              <div className="flex gap-3 flex-row mb-6">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-[color:var(--accent-light)] text-[color:var(--accent)]">
                   <Bot size={16} />
                 </div>
-                <div className="p-4 rounded-3xl max-w-[80%] bg-white text-gray-800 card-shadow rounded-tl-sm text-sm flex items-center gap-2">
-                  <Loader2 size={16} className="animate-spin" /> Thinking...
+                <div className="p-4 rounded-[1.5rem] max-w-[80%] bg-white text-[color:var(--text-primary)] shadow-sm rounded-tl-sm text-sm flex items-center gap-2 border border-[color:var(--bg-secondary)]">
+                  <Loader2 size={16} className="animate-spin text-[color:var(--accent)]" /> 
+                  <span className="text-[color:var(--text-secondary)]">Haven is thinking...</span>
                 </div>
               </div>
             )}
             <div ref={bottomRef} />
           </>
+        ) : mode === 'direct' ? (
+          <div className="space-y-4">
+             <div className="flex justify-between items-center mb-2">
+                 <h2 className="text-lg font-serif font-semibold text-[color:var(--text-primary)]">Messages</h2>
+                 <button className="text-[color:var(--accent)] font-medium text-sm">New Chat</button>
+             </div>
+             
+             {/* Mock Direct Chats */}
+             {[
+               { name: "Partner", msg: "I'll be there in 10 mins.", time: "10:30 AM", dot: true },
+               { name: "Dr. Kamau", msg: "Remember your breathing exercises today.", time: "Yesterday", dot: false },
+               { name: "Sarah", msg: "Are we still on for coffee?", time: "Oct 12", dot: false }
+             ].map((chat, i) => (
+                <div key={i} className="flex items-center gap-4 bg-white p-4 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-gray-50 hover:border-[color:var(--accent-light)] transition-all cursor-pointer">
+                   <div className="w-12 h-12 bg-[color:var(--bg-secondary)] rounded-full flex items-center justify-center text-[color:var(--accent)] font-bold">
+                     {chat.name.charAt(0)}
+                   </div>
+                   <div className="flex-1 overflow-hidden">
+                     <div className="flex justify-between items-center mb-1">
+                        <h4 className="font-semibold text-[color:var(--text-primary)] text-sm truncate">{chat.name}</h4>
+                        <span className="text-xs text-[color:var(--text-secondary)]">{chat.time}</span>
+                     </div>
+                     <p className="text-sm text-[color:var(--text-secondary)] truncate">{chat.msg}</p>
+                   </div>
+                   {chat.dot && <div className="w-2.5 h-2.5 bg-[color:var(--accent)] rounded-full"></div>}
+                </div>
+             ))}
+          </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center px-6">
-            <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
-               <Phone size={32} />
-            </div>
-            <h3 className="font-serif text-xl font-semibold mb-2">Partner</h3>
-            <p className="text-sm text-gray-500 mb-6">Connect with your partner directly through Aura.</p>
-            <div className="flex gap-4">
-              <button 
-                onClick={() => {
-                  if(profile?.partnerContact) window.open(`sms:${profile.partnerContact}`, '_self');
-                  else alert('Please configure your partner contact in Profile Settings.');
-                }}
-                className="bg-white text-gray-900 border border-gray-200 px-6 py-3 rounded-full font-semibold text-sm flex items-center gap-2 card-shadow"
-              >
-                 <MessageCircle size={16} /> Text
-              </button>
-              <button 
-                onClick={() => {
-                  if(profile?.partnerContact) window.open(`tel:${profile.partnerContact}`, '_self');
-                  else alert('Please configure your partner contact in Profile Settings.');
-                }}
-                className="bg-[color:var(--text-primary)] text-white px-6 py-3 rounded-full font-semibold text-sm flex items-center gap-2 card-shadow"
-              >
-                 <Phone size={16} /> Call
-              </button>
-            </div>
+          <div className="space-y-4">
+             <div className="flex justify-between items-center mb-2">
+                 <h2 className="text-lg font-serif font-semibold text-[color:var(--text-primary)]">Support Groups</h2>
+                 <button className="text-[color:var(--accent)] font-medium text-sm">Create Group</button>
+             </div>
+             
+             {/* Mock Groups */}
+             {[
+               { name: "Anxiety Support CBO", mem: "24", msg: "We are meeting on Saturday.", time: "11:45 AM" },
+               { name: "New Parents Connect", mem: "8", msg: "Has anyone tried the new sleep method?", time: "Yesterday" }
+             ].map((grp, i) => (
+                <div key={i} className="flex items-start gap-4 bg-white p-5 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-gray-50 hover:border-[color:var(--accent-light)] transition-all cursor-pointer">
+                   <div className="w-12 h-12 bg-gradient-to-br from-[color:var(--bg-secondary)] to-[color:var(--accent-light)] rounded-[1.2rem] flex items-center justify-center text-[color:var(--accent)] font-bold">
+                     {grp.name.charAt(0)}
+                   </div>
+                   <div className="flex-1 overflow-hidden">
+                     <div className="flex justify-between items-center mb-1">
+                        <h4 className="font-semibold text-[color:var(--text-primary)] text-sm truncate">{grp.name}</h4>
+                     </div>
+                     <p className="text-xs font-semibold text-[color:var(--accent)] mb-2">{grp.mem} Members</p>
+                     <p className="text-sm text-[color:var(--text-secondary)] truncate bg-gray-50 px-3 py-2 rounded-xl">
+                        {grp.msg}
+                     </p>
+                   </div>
+                </div>
+             ))}
+             
+             <button className="w-full mt-4 py-4 rounded-2xl bg-[color:var(--text-primary)] text-white font-medium text-sm hover:bg-[#1a231e] transition-colors">
+                Discover More Groups
+             </button>
           </div>
         )}
       </div>
 
       {/* Input Area */}
-      <div className="fixed bottom-[4rem] left-0 right-0 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent pt-10 pb-4 px-4 md:max-w-xl md:mx-auto">
-        <form onSubmit={handleSend} className="relative">
-          <input 
-            type="text" 
-            placeholder={mode === 'coach' ? "Ask Aura a question..." : "Message Partner..."}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={mode === 'partner' || isLoading}
-            className="w-full bg-white border border-gray-200 py-4 pl-5 pr-14 rounded-full card-shadow outline-none focus:border-[color:var(--accent)] transition-colors text-sm disabled:opacity-50"
-          />
-          <button 
-            type="submit"
-            disabled={mode === 'partner' || isLoading || !input.trim()}
-            className="absolute right-2 top-2 bottom-2 w-10 bg-[color:var(--accent)] hover:opacity-90 transition-colors rounded-full flex items-center justify-center text-white disabled:opacity-50"
-          >
-            <Send size={16} className="-ml-0.5" />
-          </button>
-        </form>
-      </div>
+      {mode === 'haven' && (
+        <div className="fixed bottom-24 md:bottom-28 left-4 right-4 md:left-auto md:right-auto md:w-[480px] md:translate-x-[-50%] md:left-[50%] z-30">
+          <form onSubmit={handleSend} className="relative">
+            <input 
+              type="text" 
+              placeholder="Talk to Haven..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={isLoading}
+              className="w-full bg-white/90 backdrop-blur-md border border-white/60 py-4 pl-6 pr-14 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.06)] outline-none focus:border-[color:var(--accent)] transition-all text-sm disabled:opacity-50 text-[color:var(--text-primary)] placeholder-[color:var(--text-secondary)]"
+            />
+            <button 
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              className="absolute right-2 top-2 bottom-2 w-12 bg-[color:var(--text-primary)] hover:bg-[#1a231e] transition-colors rounded-[1.5rem] flex items-center justify-center text-white disabled:opacity-50 shadow-sm"
+            >
+              <Send size={16} className="-ml-0.5" />
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
