@@ -1,24 +1,64 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Outfit:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Outfit", ui-serif, Georgia, serif; /* Using Outfit as a modern structured alternative */
 }
 
 @layer base {
   :root {
-    --bg-primary: #F9FDFB; /* Soft cream/white */
-    --bg-secondary: #EAF0EC; /* Sage green light */
-    --text-primary: #2D3A32; /* Deep sage text */
-    --text-secondary: #5F7466; /* Muted soft green */
-    --accent: #5D8A66; /* Sage green */
-    --accent-light: #DCE5E0; /* Soft sage background */
-    --surface: #FFFFFF;
-    --distress: #D67A7A; /* Softer, matte red for emergency */
-    --blue-soft: #E6F0FA; /* Soft blue for variance */
+    --bg-primary: #F0F0EE; /* Cool, structured gray/stone */
+    --bg-secondary: #E4E4E1; /* Deeper stone */
+    --text-primary: #111111; /* Stark black */
+    --text-secondary: #5F5F5F; /* Crisp gray */
+    --accent: #505050; /* Monochromatic slate for primary actions */
+    --accent-light: #DFDFDC; /* Wash */
+    --surface: #FFFFFF; /* Pure white */
+    --distress: #D03B3B; /* Urgent but sophisticated red */
+    --blue-soft: #EAECEF; /* Minimal blue */
   }
   
+  :root[data-theme="sage"] {
+    --bg-primary: #F9FDFB;
+    --bg-secondary: #EAF0EC;
+    --text-primary: #2D3A32;
+    --text-secondary: #5F7466;
+    --accent: #5D8A66;
+    --accent-light: #DCE5E0;
+    --blue-soft: #E6F0FA;
+  }
+
+  :root[data-theme="rose"] {
+    --bg-primary: #FFF9FA;
+    --bg-secondary: #F7EAEB;
+    --text-primary: #4A3337;
+    --text-secondary: #8A686D;
+    --accent: #B06C78;
+    --accent-light: #F0DADC;
+    --blue-soft: #F9E6EB;
+  }
+
+  :root[data-theme="ocean"] {
+    --bg-primary: #F4F8FA;
+    --bg-secondary: #E3EEF3;
+    --text-primary: #1C3545;
+    --text-secondary: #5B7A8C;
+    --accent: #3A7292;
+    --accent-light: #D0DFE8;
+    --blue-soft: #E6F0FA;
+  }
+
+  :root[data-theme="lavender"] {
+    --bg-primary: #F8F7FA;
+    --bg-secondary: #EBE8F3;
+    --text-primary: #312A45;
+    --text-secondary: #6B5F8A;
+    --accent: #7A69A8;
+    --accent-light: #DCD8E8;
+    --blue-soft: #F0E8FA;
+  }
+
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);

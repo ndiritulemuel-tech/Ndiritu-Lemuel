@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
-import { Settings, Shield, LogOut, Phone, UserCircle, Check, Download, TrendingUp, Sparkles } from 'lucide-react';
+import { Settings, Shield, LogOut, Phone, UserCircle, Check, Download, TrendingUp, Sparkles, Camera, Wand2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
@@ -14,19 +14,20 @@ export function ProfileView() {
   const [partnerContact, setPartnerContact] = useState(profile?.partnerContact || '');
   const [supportFocus, setSupportFocus] = useState(profile?.supportFocus || 'general');
   const [identityPref, setIdentityPref] = useState(profile?.identityPref || 'none');
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatarUrl || '');
+  const [coachColors, setCoachColors] = useState(profile?.coachColors || 'default');
   
   const [saved, setSaved] = useState(false);
   const [moodData, setMoodData] = useState<any[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    // Generate some mock history data combined with real, but we'll use pure mock for the "Trend" 
-    // to guarantee it looks like a nice area chart as requested ("trends, not just points").
     const generateTrendData = () => {
       const data = [];
       for (let i = 6; i >= 0; i--) {
         data.push({
           date: format(subDays(new Date(), i), 'EEE'),
-          energy: Math.floor(Math.random() * 40) + 40 // Keep it between 40 and 80 to show "progress"
+          energy: Math.floor(Math.random() * 40) + 40
         });
       }
       setMoodData(data);
@@ -34,12 +35,68 @@ export function ProfileView() {
     generateTrendData();
   }, [user]);
 
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX = 200;
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > MAX) { height *= MAX / width; width = MAX; }
+          } else {
+            if (height > MAX) { width *= MAX / height; height = MAX; }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          setAvatarUrl(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGenerateAvatar = async () => {
+    setIsGenerating(true);
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [{ text: 'A surreal, calming, abstract minimalist avatar portrait, gentle colors, soothing mental health vibes' }]
+        },
+        config: {
+          imageConfig: { aspectRatio: "1:1" }
+        }
+      });
+      for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) {
+          setAvatarUrl(`data:image/png;base64,${part.inlineData.data}`);
+        }
+      }
+    } catch(e) {
+      console.error(e);
+      alert('Failed to generate avatar.');
+    }
+    setIsGenerating(false);
+  };
+
   const handleSave = async () => {
     await updateProfile({
       pseudonym,
       partnerContact,
       supportFocus,
-      identityPref
+      identityPref,
+      avatarUrl,
+      coachColors
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -59,12 +116,29 @@ export function ProfileView() {
         Your Space
       </h1>
       
-      <div className="flex flex-col items-center mb-8">
-        <div className="w-24 h-24 bg-[color:var(--bg-secondary)] rounded-full flex items-center justify-center text-3xl text-[color:var(--accent)] mb-4 font-bold shadow-sm">
-          {(pseudonym || user?.displayName || 'U').charAt(0)}
+      <div className="flex flex-col items-center mb-8 relative">
+        <div className="relative group">
+          {avatarUrl ? (
+             <img src={avatarUrl} alt="Avatar" className="w-24 h-24 rounded-[1.5rem] object-cover mb-4 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border-2 border-white" />
+          ) : (
+            <div className="w-24 h-24 bg-white border border-[color:var(--accent-light)] shadow-sm rounded-[1.5rem] flex items-center justify-center text-3xl text-[color:var(--accent)] mb-4 font-bold">
+              {(pseudonym || user?.displayName || 'U').charAt(0)}
+            </div>
+          )}
+          
+          <div className="absolute inset-0 bg-black/40 rounded-[1.5rem] opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 mb-4">
+            <label className="cursor-pointer text-white hover:text-[color:var(--accent-light)] transition-colors">
+              <Camera size={20} />
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            </label>
+            <button onClick={handleGenerateAvatar} disabled={isGenerating} className="cursor-pointer text-white hover:text-[color:var(--accent-light)] transition-colors" title="Generate AI Avatar">
+              <Wand2 size={20} className={isGenerating ? "animate-pulse" : ""} />
+            </button>
+          </div>
         </div>
-        <h2 className="font-serif text-xl font-semibold text-[color:var(--text-primary)]">{pseudonym || user?.displayName || 'User'}</h2>
-        <p className="text-sm text-[color:var(--text-secondary)]">Remaining anonymous is fully supported.</p>
+        
+        <h2 className="font-serif text-2xl font-semibold text-[color:var(--text-primary)] tracking-tight">{pseudonym || user?.displayName || 'User'}</h2>
+        <p className="text-sm text-[color:var(--text-secondary)] font-medium">Remaining anonymous is fully supported.</p>
       </div>
 
       {/* Progress Visualization */}
@@ -118,6 +192,38 @@ export function ProfileView() {
                 placeholder="How should we call you?"
                 className="w-full p-3 rounded-xl bg-gray-50 border-transparent focus:border-[color:var(--accent)] focus:bg-white outline-none transition-colors"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[color:var(--text-secondary)] mb-2 flex items-center gap-2">
+                <Sparkles size={16}/> Application Theme
+              </label>
+              <div className="flex gap-4">
+                {[
+                  { id: 'default', color: '#505050', label: 'Stone' },
+                  { id: 'sage', color: '#5D8A66', label: 'Sage' },
+                  { id: 'rose', color: '#B06C78', label: 'Rose' },
+                  { id: 'ocean', color: '#3A7292', label: 'Ocean' },
+                  { id: 'lavender', color: '#7A69A8', label: 'Lavender' },
+                ].map(theme => (
+                  <button
+                    key={theme.id}
+                    onClick={() => {
+                      setCoachColors(theme.id);
+                      if (theme.id !== 'default') {
+                        document.documentElement.setAttribute('data-theme', theme.id);
+                      } else {
+                        document.documentElement.removeAttribute('data-theme');
+                      }
+                    }}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                      coachColors === theme.id ? 'ring-2 ring-offset-2 ring-[color:var(--text-primary)] scale-110 shadow-md' : 'opacity-80 hover:opacity-100 hover:scale-105 shadow-sm border border-black/5'
+                    }`}
+                    style={{ backgroundColor: theme.color }}
+                    title={theme.label}
+                  />
+                ))}
+              </div>
             </div>
 
             <div>

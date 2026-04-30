@@ -12,7 +12,7 @@ service cloud.firestore {
     }
     function incoming() { return request.resource.data; }
     function existing() { return resource.data; }
-    function isSignedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function isSignedIn() { return request.auth != null; }
     
     // User Profile
     function isValidUserProfile(data) {
@@ -20,23 +20,27 @@ service cloud.firestore {
              && data.email is string && data.email.size() <= 200
              && data.createdAt == request.time
              && data.updatedAt == request.time
+             && (data.get('avatarUrl', '') == '' || data.avatarUrl is string && data.avatarUrl.size() <= 1000000)
              && (data.get('pseudonym', '') == '' || data.pseudonym is string && data.pseudonym.size() <= 50)
              && (data.get('supportFocus', '') == '' || data.supportFocus is string && data.supportFocus.size() <= 50)
              && (data.get('identityPref', '') == '' || data.identityPref is string && data.identityPref.size() <= 50)
              && (data.get('partnerContact', '') == '' || data.partnerContact is string && data.partnerContact.size() <= 50)
              && (data.get('coachColors', '') == '' || data.coachColors is string && data.coachColors.size() <= 50)
-             && (data.get('coachVoice', '') == '' || data.coachVoice in ['male', 'female', 'neutral']);
+             && (data.get('coachVoice', '') == '' || data.coachVoice in ['male', 'female', 'neutral'])
+             && (data.get('blockedUsers', []) is list);
     }
 
     function isValidUserProfileUpdate(data) {
       return data.email is string && data.email.size() <= 200
              && data.updatedAt == request.time
+             && (data.get('avatarUrl', '') == '' || data.avatarUrl is string && data.avatarUrl.size() <= 1000000)
              && (data.get('pseudonym', '') == '' || data.pseudonym is string && data.pseudonym.size() <= 50)
              && (data.get('supportFocus', '') == '' || data.supportFocus is string && data.supportFocus.size() <= 50)
              && (data.get('identityPref', '') == '' || data.identityPref is string && data.identityPref.size() <= 50)
              && (data.get('partnerContact', '') == '' || data.partnerContact is string && data.partnerContact.size() <= 50)
              && (data.get('coachColors', '') == '' || data.coachColors is string && data.coachColors.size() <= 50)
-             && (data.get('coachVoice', '') == '' || data.coachVoice in ['male', 'female', 'neutral']);
+             && (data.get('coachVoice', '') == '' || data.coachVoice in ['male', 'female', 'neutral'])
+             && (data.get('blockedUsers', []) is list);
     }
 
     // Journal Entry
@@ -66,6 +70,52 @@ service cloud.firestore {
              && (data.get('location', '') == '' || data.location is string && data.location.size() <= 200);
     }
 
+    // Direct Chat
+    function isValidDirectChat(data) {
+      return data.keys().hasAll(['participants', 'updatedAt'])
+             && data.participants is list && data.participants.size() == 2
+             && data.participants[0] is string && data.participants[1] is string
+             && data.updatedAt == request.time;
+    }
+
+    function isValidDirectChatUpdate(data) {
+      return data.updatedAt == request.time;
+    }
+
+    // Group Chat
+    function isValidGroupChat(data) {
+      return data.keys().hasAll(['name', 'ownerId', 'members', 'createdAt', 'updatedAt'])
+             && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+             && data.ownerId is string && data.ownerId == request.auth.uid
+             && data.members is list && data.members.size() > 0 && data.members.size() <= 100
+             && data.members[0] is string
+             && data.createdAt == request.time
+             && data.updatedAt == request.time;
+    }
+    
+    function isValidGroupChatUpdate(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100
+             && data.members is list && data.members.size() > 0 && data.members.size() <= 100
+             && data.members[0] is string
+             && data.updatedAt == request.time;
+    }
+    
+    // Chat Message
+    function isValidChatMessage(data) {
+      return data.keys().hasAll(['text', 'senderId', 'senderName', 'createdAt'])
+             && data.text is string && data.text.size() > 0 && data.text.size() <= 1000
+             && data.senderId == request.auth.uid
+             && data.senderName is string && data.senderName.size() <= 50
+             && data.createdAt == request.time;
+    }
+
+    // Typing Indicator
+    function isValidTypingIndicator(data) {
+      return data.keys().hasAll(['isTyping', 'updatedAt'])
+             && data.isTyping is bool
+             && data.updatedAt == request.time;
+    }
+
     match /users/{userId} {
       allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
       allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId 
@@ -73,7 +123,7 @@ service cloud.firestore {
                     && request.auth.token.email == incoming().email;
       allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId 
                     && isValidUserProfileUpdate(incoming())
-                    && incoming().diff(existing()).affectedKeys().hasOnly(['pseudonym', 'supportFocus', 'identityPref', 'partnerContact', 'coachColors', 'coachVoice', 'updatedAt'])
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['avatarUrl', 'pseudonym', 'supportFocus', 'identityPref', 'partnerContact', 'coachColors', 'coachVoice', 'blockedUsers', 'updatedAt'])
                     && incoming().email == existing().email
                     && incoming().createdAt == existing().createdAt;
       allow delete: if false;
@@ -102,6 +152,89 @@ service cloud.firestore {
                       && exists(/databases/$(database)/documents/users/$(userId));
         allow update: if false; // Moods are append-only logs
         allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidId(moodId);
+      }
+    }
+
+    match /directChats/{chatId} {
+      allow get: if isSignedIn() && isValidId(chatId) && request.auth.uid in resource.data.participants;
+      allow list: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow create: if isSignedIn() && isValidId(chatId) 
+                    && isValidDirectChat(incoming())
+                    && request.auth.uid in incoming().participants;
+      allow update: if isSignedIn() && isValidId(chatId) 
+                    && request.auth.uid in existing().participants
+                    && isValidDirectChatUpdate(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['updatedAt'])
+                    && incoming().participants == existing().participants;
+      allow delete: if isSignedIn() && isValidId(chatId) && request.auth.uid in existing().participants;
+
+      match /messages/{messageId} {
+        allow get: if isSignedIn() && isValidId(chatId) && isValidId(messageId) 
+                   && request.auth.uid in get(/databases/$(database)/documents/directChats/$(chatId)).data.participants;
+        allow list: if isSignedIn() && isValidId(chatId)
+                   && request.auth.uid in get(/databases/$(database)/documents/directChats/$(chatId)).data.participants;
+        allow create: if isSignedIn() && isValidId(chatId) && isValidId(messageId)
+                      && isValidChatMessage(incoming())
+                      && request.auth.uid in get(/databases/$(database)/documents/directChats/$(chatId)).data.participants;
+        allow delete: if isSignedIn() && isValidId(chatId) && isValidId(messageId)
+                      && existing().senderId == request.auth.uid;
+      }
+
+      match /typingIndicators/{indicatorUserId} {
+        allow get: if isSignedIn() && isValidId(chatId) && isValidId(indicatorUserId) 
+                   && request.auth.uid in get(/databases/$(database)/documents/directChats/$(chatId)).data.participants;
+        allow list: if isSignedIn() && isValidId(chatId)
+                   && request.auth.uid in get(/databases/$(database)/documents/directChats/$(chatId)).data.participants;
+        allow create: if isSignedIn() && isValidId(chatId) && isValidId(indicatorUserId) && request.auth.uid == indicatorUserId
+                      && isValidTypingIndicator(incoming())
+                      && request.auth.uid in get(/databases/$(database)/documents/directChats/$(chatId)).data.participants;
+        allow update: if isSignedIn() && isValidId(chatId) && isValidId(indicatorUserId) && request.auth.uid == indicatorUserId
+                      && isValidTypingIndicator(incoming())
+                      && incoming().diff(existing()).affectedKeys().hasOnly(['isTyping', 'updatedAt'])
+                      && request.auth.uid in get(/databases/$(database)/documents/directChats/$(chatId)).data.participants;
+        allow delete: if isSignedIn() && isValidId(chatId) && isValidId(indicatorUserId) && request.auth.uid == indicatorUserId;
+      }
+    }
+
+    match /groups/{groupId} {
+      allow get: if isSignedIn() && isValidId(groupId) && request.auth.uid in resource.data.members;
+      allow list: if isSignedIn() && request.auth.uid in resource.data.members;
+      allow create: if isSignedIn() && isValidId(groupId) 
+                    && isValidGroupChat(incoming())
+                    && request.auth.uid in incoming().members;
+      allow update: if isSignedIn() && isValidId(groupId) 
+                    && request.auth.uid in existing().members
+                    && isValidGroupChatUpdate(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'members', 'updatedAt'])
+                    && incoming().ownerId == existing().ownerId
+                    && incoming().createdAt == existing().createdAt;
+      allow delete: if isSignedIn() && isValidId(groupId) && existing().ownerId == request.auth.uid;
+
+      match /messages/{messageId} {
+        allow get: if isSignedIn() && isValidId(groupId) && isValidId(messageId) 
+                   && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+        allow list: if isSignedIn() && isValidId(groupId)
+                   && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+        allow create: if isSignedIn() && isValidId(groupId) && isValidId(messageId)
+                      && isValidChatMessage(incoming())
+                      && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+        allow delete: if isSignedIn() && isValidId(groupId) && isValidId(messageId)
+                      && existing().senderId == request.auth.uid;
+      }
+
+      match /typingIndicators/{indicatorUserId} {
+        allow get: if isSignedIn() && isValidId(groupId) && isValidId(indicatorUserId) 
+                   && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+        allow list: if isSignedIn() && isValidId(groupId)
+                   && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+        allow create: if isSignedIn() && isValidId(groupId) && isValidId(indicatorUserId) && request.auth.uid == indicatorUserId
+                      && isValidTypingIndicator(incoming())
+                      && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+        allow update: if isSignedIn() && isValidId(groupId) && isValidId(indicatorUserId) && request.auth.uid == indicatorUserId
+                      && isValidTypingIndicator(incoming())
+                      && incoming().diff(existing()).affectedKeys().hasOnly(['isTyping', 'updatedAt'])
+                      && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+        allow delete: if isSignedIn() && isValidId(groupId) && isValidId(indicatorUserId) && request.auth.uid == indicatorUserId;
       }
     }
   }

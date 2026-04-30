@@ -6,6 +6,7 @@
       "type": "object",
       "properties": {
         "email": { "type": "string" },
+        "avatarUrl": { "type": "string" },
         "pseudonym": { "type": "string" },
         "supportFocus": { "type": "string" },
         "identityPref": { "type": "string" },
@@ -31,16 +32,61 @@
       },
       "required": ["title", "content", "date", "type", "createdAt", "updatedAt"]
     },
-    "moodLog": {
-      "title": "Mood Log",
-      "description": "Log of user's mood and location.",
+    "directChat": {
+      "title": "Direct Chat",
+      "description": "A direct chat between two users",
       "type": "object",
       "properties": {
-        "mood": { "type": "string", "enum": ["cheerful", "grateful", "whimsical", "romantic", "hopeful", "reflective", "calm", "melancholy", "boredom", "irritated", "gloomy", "anxious", "lonely", "resentful", "mysterious", "ominous", "idyllic"] },
-        "location": { "type": "string" },
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["participants", "updatedAt"]
+    },
+    "directMessage": {
+      "title": "Direct Message",
+      "description": "A message in a direct chat",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "senderId": { "type": "string" },
         "createdAt": { "type": "string" }
       },
-      "required": ["mood", "createdAt"]
+      "required": ["text", "senderId", "createdAt"]
+    },
+    "groupChat": {
+      "title": "Group Chat",
+      "description": "A group chat room",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "members": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "ownerId", "members", "createdAt", "updatedAt"]
+    },
+    "chatMessage": {
+      "title": "Chat Message",
+      "description": "A message inside a group chat",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["text", "senderId", "senderName", "createdAt"]
+    },
+    "typingIndicator": {
+      "title": "Typing Indicator",
+      "description": "User's current typing status in a chat",
+      "type": "object",
+      "properties": {
+        "isTyping": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["isTyping", "updatedAt"]
     }
   },
   "firestore": {
@@ -55,6 +101,30 @@
     "/users/{userId}/moods/{moodId}": {
       "schema": { "$ref": "#/entities/moodLog" },
       "description": "User's mood tracking entries."
+    },
+    "/directChats/{chatId}": {
+      "schema": { "$ref": "#/entities/directChat" },
+      "description": "Direct chat between 2 users"
+    },
+    "/directChats/{chatId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/directMessage" },
+      "description": "Messages within a direct chat"
+    },
+    "/groups/{groupId}": {
+      "schema": { "$ref": "#/entities/groupChat" },
+      "description": "Group chat rooms"
+    },
+    "/groups/{groupId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/chatMessage" },
+      "description": "Messages within a group chat"
+    },
+    "/directChats/{chatId}/typingIndicators/{userId}": {
+      "schema": { "$ref": "#/entities/typingIndicator" },
+      "description": "Typing indicators for direct chats"
+    },
+    "/groups/{groupId}/typingIndicators/{userId}": {
+      "schema": { "$ref": "#/entities/typingIndicator" },
+      "description": "Typing indicators for group chats"
     }
   }
 }

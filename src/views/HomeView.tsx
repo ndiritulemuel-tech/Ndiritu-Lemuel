@@ -88,7 +88,11 @@ export function HomeView() {
       calm: '😌', content: '🙂', energized: '✨', 
       exhausted: '🔋', overwhelmed: '🌊', anxious: '🦋', 
       sad: '🌧️', numb: '🌫️', irritable: '⚡', 
-      healing: '🌱', triggered: '🚨'
+      healing: '🌱', triggered: '🚨',
+      joyful: '🥳', hopeful: '🌈', grateful: '🙏',
+      lonely: '🧊', frustrated: '😤', insecure: '🥀',
+      nostalgic: '📼', confused: '🌀', peaceful: '🕊️',
+      focused: '🎯', romantic: '💌', scattered: '🍂'
     };
     return emojiMap[mood] || '🙂';
   };
@@ -225,24 +229,36 @@ export function HomeView() {
                  </button>
               </div>
 
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-8 max-h-72 overflow-y-auto p-2 hide-scrollbar">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-8 max-h-96 overflow-y-auto p-2 hide-scrollbar">
                 {([
-                  ['calm', '😌', 'bg-blue-50/50 hover:bg-blue-100 border-blue-100'], 
-                  ['content', '🙂', 'bg-green-50/50 hover:bg-green-100 border-green-100'], 
-                  ['energized', '✨', 'bg-yellow-50/50 hover:bg-yellow-100 border-yellow-100'], 
-                  ['healing', '🌱', 'bg-emerald-50/50 hover:bg-emerald-100 border-emerald-100'], 
-                  ['exhausted', '🔋', 'bg-slate-50/50 hover:bg-slate-100 border-slate-200'], 
-                  ['overwhelmed', '🌊', 'bg-indigo-50/50 hover:bg-indigo-100 border-indigo-100'], 
-                  ['anxious', '🦋', 'bg-orange-50/50 hover:bg-orange-100 border-orange-100'], 
-                  ['sad', '🌧️', 'bg-blue-50/50 hover:bg-blue-100 border-blue-100'], 
-                  ['numb', '🌫️', 'bg-gray-50/50 hover:bg-gray-100 border-gray-200'], 
-                  ['irritable', '⚡', 'bg-red-50/50 hover:bg-red-100 border-red-100'], 
-                  ['triggered', '🚨', 'bg-red-50/50 hover:bg-red-100 border-red-200']
+                  ['joyful', '🥳', 'bg-amber-50 hover:bg-amber-100 border-amber-200'],
+                  ['calm', '😌', 'bg-blue-50/50 hover:bg-blue-100 border-blue-200'], 
+                  ['content', '🙂', 'bg-green-50/50 hover:bg-green-100 border-green-200'], 
+                  ['energized', '✨', 'bg-yellow-50/50 hover:bg-yellow-100 border-yellow-200'], 
+                  ['hopeful', '🌈', 'bg-sky-50 hover:bg-sky-100 border-sky-200'],
+                  ['grateful', '🙏', 'bg-rose-50 hover:bg-rose-100 border-rose-200'],
+                  ['healing', '🌱', 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200'], 
+                  ['peaceful', '🕊️', 'bg-teal-50 hover:bg-teal-100 border-teal-200'],
+                  ['focused', '🎯', 'bg-purple-50 hover:bg-purple-100 border-purple-200'],
+                  ['romantic', '💌', 'bg-pink-50 hover:bg-pink-100 border-pink-200'],
+                  ['exhausted', '🔋', 'bg-slate-100 hover:bg-slate-200 border-slate-300'], 
+                  ['overwhelmed', '🌊', 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200'], 
+                  ['anxious', '🦋', 'bg-orange-50 hover:bg-orange-100 border-orange-200'], 
+                  ['sad', '🌧️', 'bg-blue-100 hover:bg-blue-200 border-blue-300'], 
+                  ['lonely', '🧊', 'bg-cyan-50 hover:bg-cyan-100 border-cyan-200'],
+                  ['numb', '🌫️', 'bg-gray-100 hover:bg-gray-200 border-gray-300'], 
+                  ['irritable', '⚡', 'bg-red-50 hover:bg-red-100 border-red-200'], 
+                  ['frustrated', '😤', 'bg-orange-100 hover:bg-orange-200 border-orange-300'],
+                  ['insecure', '🥀', 'bg-stone-100 hover:bg-stone-200 border-stone-300'],
+                  ['confused', '🌀', 'bg-violet-50 hover:bg-violet-100 border-violet-200'],
+                  ['scattered', '🍂', 'bg-amber-100 hover:bg-amber-200 border-amber-300'],
+                  ['nostalgic', '📼', 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200'],
+                  ['triggered', '🚨', 'bg-red-100 hover:bg-red-200 border-red-300']
                 ] as const).map(([moodStr, emoji, colors]) => (
                   <button 
                     key={moodStr}
                     onClick={() => setSelectedMood(moodStr as any)}
-                    className={`flex flex-col items-center justify-center gap-2 py-4 rounded-[1.5rem] border-2 transition-all duration-200 ${colors} ${selectedMood === moodStr ? 'border-[color:var(--accent)] bg-[color:var(--accent)]/10 scale-[1.02] shadow-sm' : 'border-transparent'}`}
+                    className={`flex flex-col items-center justify-center gap-2 py-4 rounded-[1.5rem] border-2 transition-all duration-200 ${colors} ${selectedMood === moodStr ? 'ring-2 ring-offset-2 ring-[color:var(--text-primary)] border-[color:var(--text-primary)] scale-[1.02] shadow-md opacity-100' : 'border-transparent opacity-80 hover:opacity-100'}`}
                   >
                     <span className="text-3xl filter saturate-75">{emoji}</span>
                     <span className="font-medium text-[color:var(--text-primary)] capitalize text-xs tracking-wide">{moodStr}</span>

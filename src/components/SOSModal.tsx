@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { HeartPulse, Phone, AlertTriangle, ShieldAlert, X, Wind, Volume2 } from 'lucide-react';
+import { HeartPulse, Phone, AlertTriangle, X, Wind, Volume2, Anchor, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { getPreferredVoice } from '../lib/utils';
 
@@ -11,7 +11,7 @@ interface SOSModalProps {
 
 export function SOSModal({ isOpen, onClose }: SOSModalProps) {
   const { profile } = useAuth();
-  const [view, setView] = useState<'menu' | 'breathing' | 'crisis'>('menu');
+  const [view, setView] = useState<'menu' | 'breathing' | 'crisis' | 'tools'>('menu');
   const [isBreathingVoice, setIsBreathingVoice] = useState(false);
 
   const handleTrustedContactCall = () => {
@@ -100,12 +100,12 @@ export function SOSModal({ isOpen, onClose }: SOSModalProps) {
                       </div>
                     </button>
                     
-                    <button onClick={() => startBreathing(true)} className="flex-1 flex flex-col items-center justify-center gap-3 bg-[color:var(--bg-secondary)] hover:bg-[color:var(--accent-light)] transition-colors p-5 rounded-[1.5rem] group shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-[color:var(--bg-secondary)]">
+                    <button onClick={() => setView('tools')} className="flex-1 flex flex-col items-center justify-center gap-3 bg-[color:var(--bg-secondary)] hover:bg-[color:var(--accent-light)] transition-colors p-5 rounded-[1.5rem] group shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-[color:var(--bg-secondary)]">
                       <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[color:var(--accent)] group-hover:scale-105 transition-transform shadow-sm">
-                        <Volume2 size={20} />
+                        <Anchor size={20} />
                       </div>
                       <div className="text-center">
-                        <h3 className="font-medium text-sm text-[color:var(--text-primary)]">Voice Breathing</h3>
+                        <h3 className="font-medium text-sm text-[color:var(--text-primary)]">Grounding Tools</h3>
                       </div>
                     </button>
                   </div>
@@ -142,32 +142,84 @@ export function SOSModal({ isOpen, onClose }: SOSModalProps) {
               </div>
             )}
 
+            {view === 'tools' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <button onClick={() => setView('menu')} className="p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
+                    <ArrowLeft size={20} />
+                  </button>
+                  <h3 className="font-serif text-xl font-semibold text-[color:var(--text-primary)]">Distress Tolerance</h3>
+                </div>
+                
+                <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <h4 className="font-bold text-[color:var(--text-primary)] mb-2 flex items-center gap-2">
+                    <Anchor size={16} className="text-[color:var(--accent)]"/> 5-4-3-2-1 Grounding
+                  </h4>
+                  <p className="text-sm text-[color:var(--text-secondary)] mb-3 leading-relaxed">Name things around you right now:</p>
+                  <ul className="text-sm text-[color:var(--text-secondary)] space-y-2">
+                    <li><span className="font-bold text-[color:var(--accent)] text-lg mr-1.5">5</span> things you can <strong>see</strong></li>
+                    <li><span className="font-bold text-[color:var(--accent)] text-lg mr-1.5">4</span> things you can <strong>feel</strong></li>
+                    <li><span className="font-bold text-[color:var(--accent)] text-lg mr-1.5">3</span> things you can <strong>hear</strong></li>
+                    <li><span className="font-bold text-[color:var(--accent)] text-lg mr-1.5">2</span> things you can <strong>smell</strong></li>
+                    <li><span className="font-bold text-[color:var(--accent)] text-lg mr-1.5">1</span> thing you can <strong>taste</strong></li>
+                  </ul>
+                </div>
+
+                <div className="bg-blue-50/70 p-5 rounded-3xl border border-blue-100/50">
+                  <h4 className="font-bold text-blue-900 mb-2">The Cold Water Reset</h4>
+                  <p className="text-sm text-blue-800 leading-relaxed font-medium">
+                    Splash freezing cold water on your face, or hold an ice cube in your hand. The extreme temperature triggers your mammalian dive reflex, immediately slowing your heart rate and interrupting panic.
+                  </p>
+                </div>
+
+                <div className="bg-[color:var(--bg-secondary)] p-5 rounded-3xl border border-[color:var(--accent-light)]">
+                  <h4 className="font-bold text-[color:var(--text-primary)] mb-2">Paired Muscle Relaxation</h4>
+                  <p className="text-sm text-[color:var(--text-secondary)] leading-relaxed font-medium">
+                    Clench your fists or tighten your shoulders as hard as you can for 5 seconds. Then, release completely. Notice the difference in the tension. Repeat 3 times.
+                  </p>
+                </div>
+                
+                <div className="bg-stone-50 p-5 rounded-3xl border border-stone-200/60">
+                  <h4 className="font-bold text-stone-700 mb-2">Categories (Distraction)</h4>
+                  <p className="text-sm text-stone-600 leading-relaxed font-medium">
+                    Pick a category (e.g., dog breeds, cities, movies) and try to name as many as you can. This forces your brain to engage the prefrontal cortex and shift away from the emotional center.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {view === 'crisis' && (
               <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <button onClick={() => setView('menu')} className="p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
+                    <ArrowLeft size={20} />
+                  </button>
+                  <h3 className="font-serif text-xl font-semibold text-[color:var(--text-primary)]">Crisis Lines</h3>
+                </div>
                 <p className="text-[color:var(--text-secondary)] mb-4 font-medium">National Emergency & Crisis Lines:</p>
                 <div className="space-y-3">
-                  <a href="tel:999" className="block p-4 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-gray-50 transition-colors">
+                  <a href="tel:999" className="block p-4 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-gray-50 transition-colors bg-white shadow-sm">
                     <div>
                       <h4 className="font-semibold text-[color:var(--text-primary)]">Police & Ambulance</h4>
                       <p className="text-sm text-[color:var(--text-secondary)]">General Emergency</p>
                     </div>
                     <span className="font-bold text-lg text-[color:var(--accent)]">999 / 112</span>
                   </a>
-                  <a href="tel:1195" className="block p-4 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-gray-50 transition-colors">
+                  <a href="tel:1195" className="block p-4 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-gray-50 transition-colors bg-white shadow-sm">
                     <div>
                       <h4 className="font-semibold text-[color:var(--text-primary)]">Gender Violence</h4>
                       <p className="text-sm text-[color:var(--text-secondary)]">GVRC Toll Free</p>
                     </div>
                     <span className="font-bold text-lg text-[color:var(--accent)]">1195</span>
                   </a>
-                  <a href="tel:1199" className="block p-4 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-gray-50 transition-colors">
+                  <a href="tel:1199" className="block p-4 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-gray-50 transition-colors bg-white shadow-sm">
                     <div>
                       <h4 className="font-semibold text-[color:var(--text-primary)]">Kenya Red Cross</h4>
                       <p className="text-sm text-[color:var(--text-secondary)]">Emergency Response</p>
                     </div>
                     <span className="font-bold text-lg text-[color:var(--accent)]">1199</span>
                   </a>
-                  <a href="tel:1190" className="block p-4 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-gray-50 transition-colors">
+                  <a href="tel:+254722178177" className="block p-4 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-gray-50 transition-colors bg-white shadow-sm">
                     <div>
                       <h4 className="font-semibold text-[color:var(--text-primary)]">Befrienders Kenya</h4>
                       <p className="text-sm text-[color:var(--text-secondary)]">Suicide Prevention</p>
@@ -175,9 +227,6 @@ export function SOSModal({ isOpen, onClose }: SOSModalProps) {
                     <span className="font-bold text-lg text-[color:var(--accent)]">+254 722 178 177</span>
                   </a>
                 </div>
-                <button onClick={() => setView('menu')} className="w-full mt-4 text-sm font-semibold text-[color:var(--text-primary)] p-2 text-center">
-                  Back to Menu
-                </button>
               </div>
             )}
             
@@ -187,3 +236,4 @@ export function SOSModal({ isOpen, onClose }: SOSModalProps) {
     </AnimatePresence>
   );
 }
+

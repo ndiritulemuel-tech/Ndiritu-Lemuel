@@ -25,6 +25,7 @@ export function JournalView() {
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newType, setNewType] = useState<'daily' | 'milestone'>('daily');
+  const [newDate, setNewDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [isLoading, setIsLoading] = useState(true);
   
   const [currentPrompt, setCurrentPrompt] = useState('What is one thing that felt heavy today?');
@@ -48,6 +49,7 @@ export function JournalView() {
   const openNewEntry = () => {
     setIsCreating(true);
     setIsNotReady(false);
+    setNewDate(new Date().toISOString().split('T')[0]);
     shufflePrompt();
   };
 
@@ -61,6 +63,8 @@ export function JournalView() {
         id: doc.id,
         ...doc.data()
       })) as JournalEntry[];
+      // Sort in memory by date string as secondary sort could be useful,
+      // but order by createdAt is what the query does. We'll stick to original behavior.
       setEntries(fetched);
       setIsLoading(false);
     }, (error) => {
@@ -76,25 +80,44 @@ export function JournalView() {
     setNewTitle(entry.title);
     setNewContent(entry.content);
     setNewType(entry.type);
+    
+    try {
+      const d = new Date(entry.date);
+      if (!isNaN(d.getTime())) {
+        setNewDate(d.toISOString().split('T')[0]);
+      } else {
+        setNewDate(new Date().toISOString().split('T')[0]);
+      }
+    } catch {
+      setNewDate(new Date().toISOString().split('T')[0]);
+    }
+
     setIsCreating(true);
   };
 
   const handleCreate = async () => {
     if (!user || !newTitle.trim() || !newContent.trim()) return;
-    const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const now = new Date().toISOString();
+    
+    let formattedDate = newDate;
+    try {
+      // Create a date object from YYYY-MM-DD but ensure it doesn't shift timezones randomly
+      // by appending T12:00:00
+      const d = new Date(newDate + 'T12:00:00Z');
+      formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      formattedDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
     
     // If editingId is set, update existing, otherwise create new
     const newDocRef = editingId ? doc(db, 'users', user.uid, 'journals', editingId) : doc(collection(db, 'users', user.uid, 'journals'));
     
     // For updates we must preserve the original createdAt
-    // To do this simply, we'll get the old entry's createdAt if editing
     const oldEntry = editingId ? entries.find(e => e.id === editingId) : null;
 
     const entryData = {
       title: newTitle,
       content: newContent,
-      date: editingId ? (oldEntry?.date || dateStr) : dateStr,
+      date: formattedDate,
       type: newType,
       createdAt: editingId ? (oldEntry?.createdAt || serverTimestamp()) : serverTimestamp(),
       updatedAt: serverTimestamp()
@@ -105,7 +128,7 @@ export function JournalView() {
         await updateDoc(newDocRef, {
           title: newTitle,
           content: newContent,
-          date: oldEntry?.date || dateStr,
+          date: formattedDate,
           type: newType,
           updatedAt: serverTimestamp()
         });
@@ -302,6 +325,24 @@ export function JournalView() {
                      placeholder="Write as much or as little as you need..."
                      className="w-full p-3 outline-none resize-none bg-gray-50/50 rounded-xl focus:bg-white border border-transparent focus:border-[color:var(--accent)] transition-colors text-sm"
                    />
+                   
+                   <div className="flex gap-3">
+                     <select 
+                       value={newType}
+                       onChange={e => setNewType(e.target.value as 'daily' | 'milestone')}
+                       className="w-1/3 text-sm font-medium p-3 bg-gray-50/50 rounded-xl outline-none focus:bg-white border border-transparent focus:border-[color:var(--accent)] transition-colors text-[color:var(--text-secondary)]"
+                     >
+                       <option value="daily">Daily</option>
+                       <option value="milestone">Milestone</option>
+                     </select>
+                     
+                     <input 
+                       type="date"
+                       value={newDate}
+                       onChange={e => setNewDate(e.target.value)}
+                       className="w-2/3 text-sm font-medium p-3 bg-gray-50/50 rounded-xl outline-none focus:bg-white border border-transparent focus:border-[color:var(--accent)] transition-colors text-[color:var(--text-secondary)]"
+                     />
+                   </div>
                    
                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
                      <button 

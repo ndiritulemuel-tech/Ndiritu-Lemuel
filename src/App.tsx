@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { SOSModal } from './components/SOSModal';
 import { HomeView } from './views/HomeView';
@@ -14,6 +14,14 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState('home');
   const [isSOSOpen, setIsSOSOpen] = useState(false);
   const { user, profile } = useAuth();
+
+  useEffect(() => {
+    if (profile?.coachColors && profile.coachColors !== 'default') {
+      document.documentElement.setAttribute('data-theme', profile.coachColors);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }, [profile?.coachColors]);
 
   const renderView = () => {
     switch (currentTab) {
